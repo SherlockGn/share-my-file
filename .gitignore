@@ -1,0 +1,4 @@
+package-lock.json
+daemon
+node_modules
+.vscode

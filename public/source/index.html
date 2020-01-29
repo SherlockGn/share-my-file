@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Share My Files</title>
+        <!-- JQuery -->
+        <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+        <!-- Bootstrap -->
+        <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <!-- Vue -->
+        <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+    </head>
+
+    <body>
+    <div id="v-app" style="padding: 50px;">
+
+        <div><h2>Share My Files</h2></div>
+
+        <div v-for="file in files">
+            <a :href="'/static/data/' + file" :download="file">{{ file }}</a>
+        </div>
+
+        <form style="margin-top: 30px;"
+              action="/api/upload"
+              method="post"
+              enctype="multipart/form-data">
+            <input class="btn btn-info" type="file" name="file" />
+            <input class="btn btn-info"
+                   id="btn-upload"
+                   type="submit"
+                   value="upload"
+                   onclick="event.preventDefault();" />
+        </form>
+    </div>
+    </body>
+
+</html>
+<script src="https://cdn.bootcss.com/jquery.form/4.2.2/jquery.form.min.js"></script>
+<script>
+    const vueObject = new Vue({
+        el: "#v-app",
+        data: {
+            files: []
+        }
+    });
+
+    async function main() {
+        $.get("/api/fileList", function(result) {
+            vueObject.files = result;
+        });
+    }
+
+    $("#btn-upload").click(function(){
+        $("form").ajaxSubmit(function(msg) {
+            location.href = "index.html";
+        });
+    });
+
+    main();
+</script>
