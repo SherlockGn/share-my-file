@@ -9,19 +9,28 @@
         <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
         <!-- Vue -->
         <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
+        <style>
+            [v-cloak] { display: none; }
+        </style>
     </head>
 
     <body>
-    <div id="v-app" style="padding: 50px;">
+    <div id="v-app" v-cloak style="padding: 50px;">
 
         <div><h2>Share My Files</h2></div>
 
         <div v-for="file in files">
+            <button @click="removeFile(file)"
+                    type="button"
+                    class="close"
+                    style="float: none; font-size: inherit;">
+                &times;
+            </button>&nbsp;
             <a :href="'/static/data/' + file" :download="file">{{ file }}</a>
         </div>
 
         <form style="margin-top: 30px;"
-              action="/api/upload"
+              action="/api/files/upload"
               method="post"
               enctype="multipart/form-data">
             <input class="btn btn-info" type="file" name="file" />
@@ -29,7 +38,7 @@
                    id="btn-upload"
                    type="submit"
                    value="upload"
-                   onclick="event.preventDefault();" />
+                   @click.prevent="uploadFile()" />
         </form>
     </div>
     </body>
@@ -41,20 +50,42 @@
         el: "#v-app",
         data: {
             files: []
+        },
+        methods: {
+            uploadFile: function() {
+                const path = document.querySelector("input[type=file]").value;
+                if (path === "") {
+                    alert("You should specify a file to upload.");
+                    return;
+                }
+                const name = path.substring(path.lastIndexOf("\\") + 1);
+                if (this.files.map(x => x.toLowerCase()).indexOf(name.toLowerCase()) >= 0) {
+                    if (!confirm(`File "${name}" already exists. Are you sure to override it?`)) {
+                        return;
+                    }
+                }
+
+                $("form").ajaxSubmit(function(msg) {
+                    location.href = "index.html";
+                });
+            },
+            removeFile: function(file) {
+                $.ajax({
+                    type: "DELETE",
+                    url: `/api/files/${file}`,
+                    success: function() {
+                        location.href = "index.html";
+                    }
+                });
+            }
         }
     });
 
     async function main() {
-        $.get("/api/fileList", function(result) {
+        $.get("/api/files", function(result) {
             vueObject.files = result;
         });
     }
-
-    $("#btn-upload").click(function(){
-        $("form").ajaxSubmit(function(msg) {
-            location.href = "index.html";
-        });
-    });
 
     main();
 </script>

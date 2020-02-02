@@ -1,14 +1,17 @@
 const Service = require('node-windows').Service;
 const path = require("path");
+const config = require("./config");
  
-var svc = new Service({
+const svc = new Service({
     name: 'ShareMyFiles',
-    description: 'This service is to share files in network',
+    description: `This service is to share files in network, port: ${config.port}.`,
     script: path.join(__dirname, "main.js")
 });
 
-svc.on('install',function(){
+svc.on('install', function() {
     svc.start();
+    console.log("Starting service succeeds...");
 });
 
 svc.install();
+console.log("Installing service succeeds...");
