@@ -1,0 +1,75 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Share My Files</title>
+        <!-- JQuery -->
+        <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.js"></script>
+        <!-- Bootstrap -->
+        <link href="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.bootcss.com/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <!-- Vue -->
+        <script src="https://cdn.bootcss.com/vue/2.6.10/vue.js"></script>
+        <style>
+            [v-cloak] { display: none; }
+        </style>
+    </head>
+
+    <body>
+    <div id="v-app" v-cloak style="padding: 50px;">
+
+        <div><h2>View My Disk</h2></div>
+
+        <div v-for="disk in disks">
+            <a href="javascript:;" @click="switchDisk(disk)">{{ disk }}</a>
+        </div>
+        <div>{{ pwd }}</div>
+        <div v-for="folder in folders">
+            <a href="javascript:;" @click="enter(folder)"><b>{{ folder }}</b></a>
+        </div>
+        <div v-for="file in files">
+            <a :href="'/api/disk/files?path='+pwd+'\\'+file+'&download=true'" :download="file">{{ file }}</a>
+        </div>
+    </div>
+    </body>
+
+</html>
+<script src="https://cdn.bootcss.com/jquery.form/4.2.2/jquery.form.min.js"></script>
+<script>
+    const vueObject = new Vue({
+        el: "#v-app",
+        data: {
+            disks: [],
+            pwd: null,
+            folders: [],
+            files: [],
+        },
+        mounted() {
+            $.get("/api/disk/labels", data => this.disks = data)
+        },
+        methods: {
+            switchDisk(disk) {
+                console.log("switch disk", disk)
+                this.pwd = disk
+                this.refresh()
+            },
+            enter(folder) {
+                if (folder === "..") {
+                    const path = this.pwd.split('\\')
+                    this.pwd = path.filter((item,i) => i !== path.length - 1 ).join('\\')
+                } else {
+                    this.pwd += `\\${folder}`
+                }
+                this.refresh()
+            },
+            refresh() {
+                $.get(`/api/disk/files?path=${this.pwd}`, data => {
+                    this.folders = data.folders
+                    if (!this.pwd.endsWith(":")) {
+                        this.folders.splice(0, 0, "..")
+                    }
+                    this.files = data.files
+                })
+            }
+        }
+    });
+</script>
